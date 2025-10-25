@@ -3,10 +3,12 @@ import type { PropsWithChildren, ReactNode } from "react";
 type CardProps = PropsWithChildren<{
   title?: string;
   value?: ReactNode;
+  description?: string;
+  footer?: ReactNode;
   className?: string;
 }>;
 
-export function Card({ title, value, className = "", children }: CardProps) {
+export function Card({ title, value, description, footer, className = "", children }: CardProps) {
   const hasContent = Boolean(children);
 
   return (
@@ -17,7 +19,9 @@ export function Card({ title, value, className = "", children }: CardProps) {
       {value ? (
         <div className="text-3xl font-semibold text-gray-900 dark:text-gray-100">{value}</div>
       ) : null}
+      {description ? <p className="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">{description}</p> : null}
       {hasContent ? <div className="text-sm text-gray-600 dark:text-gray-300">{children}</div> : null}
+      {footer ? <div className="pt-3 text-xs text-gray-400 dark:text-gray-500">{footer}</div> : null}
     </article>
   );
 }

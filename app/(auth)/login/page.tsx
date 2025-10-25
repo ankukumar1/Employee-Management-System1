@@ -1,53 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-
-const loginSchema = z.object({
-  email: z.string().min(1, "Email is required").email("Enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+import { useLoginForm } from "@/hooks/useLoginForm";
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
   const {
     register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
-  const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
-  };
-
-  const onSubmit = async (values: LoginFormValues) => {
-    await new Promise((resolve) => setTimeout(resolve, 400));
-
-    // TODO: replace with real authentication request
-    if (values.email && values.password) {
-      router.push("/dashboard");
-    }
-  };
+    errors,
+    isSubmitting,
+    onSubmit,
+    showPassword,
+    togglePasswordVisibility,
+  } = useLoginForm();
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-100 py-12 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
-      <div className="absolute inset-0 -z-10 bg-[url('data:image/svg+xml,%3Csvg width=\'160\' height=\'160\' viewBox=\'0 0 160 160\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-opacity=\'0.12\' fill-rule=\'evenodd\'%3E%3Cpath d=\'M0 80a80 80 0 1 1 160 0A80 80 0 0 1 0 80zm16 0a64 64 0 1 0 128 0A64 64 0 0 0 16 0z\' fill=\'%231976d2\'/%3E%3C/g%3E%3C/svg%3E')] bg-center opacity-50" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-linear-to-br from-blue-50 via-white to-blue-100 py-12 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+      <div className="absolute inset-0 -z-10 bg-[url('data:image/svg+xml,%3Csvg width='160' height='160' viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-opacity='0.12' fill-rule='evenodd'%3E%3Cpath d='M0 80a80 80 0 1 1 160 0A80 80 0 0 1 0 80zm16 0a64 64 0 1 0 128 0A64 64 0 0 0 16 0z' fill='%231976d2'/%3E%3C/g%3E%3C/svg%3E')] bg-center opacity-50" />
       <div className="mx-auto w-full max-w-4xl rounded-3xl border border-gray-200 bg-white/90 shadow-xl backdrop-blur-sm dark:border-gray-700 dark:bg-gray-900/80">
         <div className="grid gap-0 md:grid-cols-[1.2fr_1fr]">
           <div className="p-8 sm:p-12">
@@ -63,7 +34,7 @@ export default function LoginPage() {
               </p>
             </div>
 
-            <form className="space-y-6" noValidate onSubmit={handleSubmit(onSubmit)}>
+            <form className="space-y-6" noValidate onSubmit={onSubmit}>
               <Input
                 label="Email"
                 type="email"

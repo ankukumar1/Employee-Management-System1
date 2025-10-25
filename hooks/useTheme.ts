@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const THEME_KEY = "ems-theme";
 
@@ -19,12 +19,13 @@ export function useTheme() {
   useEffect(() => {
     const root = window.document.documentElement;
     root.dataset.theme = theme;
+    root.classList.toggle("dark", theme === "dark");
     window.localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
-  };
+  }, []);
 
   return { theme, setTheme, toggleTheme };
 }

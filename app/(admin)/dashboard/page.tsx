@@ -1,10 +1,18 @@
-export default function AdminDashboardPage() {
+import { Card } from "@/components/ui/Card";
+
+const cards = [
+  { title: "Total Employees", value: "128" },
+  { title: "Departments", value: "8" },
+  { title: "Attendance (Today)", value: "92%" },
+  { title: "Leaves Pending", value: "3" },
+];
+
+export default function DashboardPage() {
   return (
-    <section className="space-y-4">
-      <h1 className="text-3xl font-semibold">Dashboard</h1>
-      <p className="text-sm text-neutral-500">
-        Overview of key metrics and quick links will appear here.
-      </p>
-    </section>
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+      {cards.map((card) => (
+        <Card key={card.title} title={card.title} value={card.value} />
+      ))}
+    </div>
   );
 }

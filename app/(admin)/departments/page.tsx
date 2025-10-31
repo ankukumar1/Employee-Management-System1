@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
@@ -42,6 +42,8 @@ function createInitialDepartments(): Department[] {
   }));
 }
 
+const PAGE_SIZE = 5;
+
 export default function DepartmentsPage() {
   const initialDepartments = useMemo(() => createInitialDepartments(), []);
   const [departments, setDepartments] = useState<Department[]>(initialDepartments);
@@ -52,8 +54,20 @@ export default function DepartmentsPage() {
     description: "",
     employeeCount: "0",
   });
+  const [currentPage, setCurrentPage] = useState(1);
 
   const departmentTotal = departments.reduce((total, department) => total + department.employeeCount, 0);
+  const totalPages = Math.max(1, Math.ceil(departments.length / PAGE_SIZE));
+  const firstIndex = (currentPage - 1) * PAGE_SIZE;
+  const paginatedDepartments = departments.slice(firstIndex, firstIndex + PAGE_SIZE);
+  const firstItemNumber = departments.length === 0 ? 0 : firstIndex + 1;
+  const lastItemNumber = departments.length === 0 ? 0 : firstIndex + paginatedDepartments.length;
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const openAddModal = () => {
     setFormState({ name: "", description: "", employeeCount: "0" });
@@ -105,6 +119,7 @@ export default function DepartmentsPage() {
         employeeCount: parsedCount,
       };
       setDepartments((current) => [newDepartment, ...current]);
+      setCurrentPage(1);
     }
 
     closeModals();
@@ -114,7 +129,14 @@ export default function DepartmentsPage() {
     const confirmed = window.confirm(`Delete ${department.name}? This action cannot be undone.`);
     if (!confirmed) return;
 
-    setDepartments((current) => current.filter((item) => item.id !== department.id));
+    setDepartments((current) => {
+      const next = current.filter((item) => item.id !== department.id);
+      const nextTotalPages = Math.max(1, Math.ceil(next.length / PAGE_SIZE));
+      if (currentPage > nextTotalPages) {
+        setCurrentPage(nextTotalPages);
+      }
+      return next;
+    });
   };
 
   const renderModalTitle = departmentBeingEdited ? "Edit Department" : "Add Department";
@@ -162,7 +184,7 @@ export default function DepartmentsPage() {
           </thead>
           <tbody className="divide-y divide-gray-200 text-gray-700 dark:divide-gray-800 dark:text-gray-300">
             {departments.length > 0 ? (
-              departments.map((department) => (
+              paginatedDepartments.map((department) => (
                 <tr key={department.id} className="transition hover:bg-gray-50 dark:hover:bg-gray-900/40">
                   <td className="px-4 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{department.name}</td>
                   <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-300">
@@ -201,6 +223,33 @@ export default function DepartmentsPage() {
           </tbody>
         </table>
       </div>
+
+      <footer className="flex flex-col items-center justify-between gap-3 border-t border-gray-200 pt-4 text-sm dark:border-gray-800 sm:flex-row">
+        <span className="text-gray-500 dark:text-gray-400">
+          Showing {firstItemNumber}-{lastItemNumber} of {departments.length} departments
+        </span>
+        <div className="inline-flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+            disabled={currentPage === 1}
+            className="rounded-md border border-gray-200 px-3 py-1 text-xs font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+          >
+            Previous
+          </button>
+          <span className="text-gray-500 dark:text-gray-400">
+            Page {Math.min(currentPage, totalPages)} of {totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+            disabled={currentPage >= totalPages}
+            className="rounded-md border border-gray-200 px-3 py-1 text-xs font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+          >
+            Next
+          </button>
+        </div>
+      </footer>
 
       <Modal title={renderModalTitle} isOpen={isAddModalOpen || Boolean(departmentBeingEdited)} onClose={closeModals}>
         <form className="space-y-4" onSubmit={handleSubmit}>

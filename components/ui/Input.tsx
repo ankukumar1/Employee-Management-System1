@@ -26,9 +26,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             aria-invalid={Boolean(error) || undefined}
             aria-describedby={error ? errorId : description ? descriptionId : undefined}
-            className={`w-full rounded-md border px-3 py-2 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 ${
+            className={`w-full rounded-lg border px-3 py-2 text-sm shadow-sm transition placeholder-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:placeholder-neutral-500 dark:focus:ring-blue-500 ${
               endSlot ? "pr-10" : "pr-3"
-            } ${error ? "border-red-500 focus:border-red-500 focus:ring-red-400" : "border-neutral-200"} ${className}`}
+            } ${
+              error
+                ? "border-red-500 bg-white focus:border-red-500 focus:ring-red-400 dark:border-red-400 dark:bg-neutral-900"
+                : "border-neutral-200 bg-white text-neutral-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
+            } ${className}`}
             {...props}
           />
           {endSlot ? (

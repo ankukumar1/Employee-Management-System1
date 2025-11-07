@@ -13,6 +13,7 @@ import {
   ClipboardCheck,
   Settings,
   X,
+  IndianRupee,
 } from "lucide-react";
 import { useCallback } from "react";
 
@@ -24,6 +25,7 @@ const menuItems = [
   { name: "Events", href: "/events", icon: CalendarDays },
   { name: "Leaves", href: "/leaves", icon: ClipboardCheck },
   { name: "Roles", href: "/roles", icon: UserCog },
+  { name: "Payroll", href: "/salary", icon: IndianRupee },
   { name: "Notifications", href: "/notifications", icon: Bell },
   { name: "Settings", href: "/settings", icon: Settings },
 ];

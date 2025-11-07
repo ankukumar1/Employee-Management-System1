@@ -12,12 +12,14 @@ type Department = {
   name: string;
   description: string;
   employeeCount: number;
+  salaryBudget: number;
 };
 
 type DepartmentFormState = {
   name: string;
   description: string;
   employeeCount: string;
+  salaryBudget: string;
 };
 
 const DEFAULT_DESCRIPTIONS: Record<string, string> = {
@@ -26,6 +28,14 @@ const DEFAULT_DESCRIPTIONS: Record<string, string> = {
   Product: "Owns product strategy, discovery, and experience design.",
   "Quality Assurance": "Ensures release stability with manual and automated testing.",
   Operations: "Oversees cross-functional initiatives and vendor relationships.",
+};
+
+const DEFAULT_BUDGETS: Record<string, number> = {
+  "Human Resources": 1800000,
+  Engineering: 5200000,
+  Product: 3400000,
+  "Quality Assurance": 2400000,
+  Operations: 2600000,
 };
 
 function createInitialDepartments(): Department[] {
@@ -37,8 +47,9 @@ function createInitialDepartments(): Department[] {
   return Object.entries(counts).map(([name, count], index) => ({
     id: `dept-${index + 1}`,
     name,
-    description: DEFAULT_DESCRIPTIONS[name] ?? "", 
+    description: DEFAULT_DESCRIPTIONS[name] ?? "",
     employeeCount: count,
+    salaryBudget: DEFAULT_BUDGETS[name] ?? 0,
   }));
 }
 
@@ -53,15 +64,26 @@ export default function DepartmentsPage() {
     name: "",
     description: "",
     employeeCount: "0",
+    salaryBudget: "0",
   });
   const [currentPage, setCurrentPage] = useState(1);
 
   const departmentTotal = departments.reduce((total, department) => total + department.employeeCount, 0);
+  const salaryTotal = departments.reduce((total, department) => total + department.salaryBudget, 0);
   const totalPages = Math.max(1, Math.ceil(departments.length / PAGE_SIZE));
   const firstIndex = (currentPage - 1) * PAGE_SIZE;
   const paginatedDepartments = departments.slice(firstIndex, firstIndex + PAGE_SIZE);
   const firstItemNumber = departments.length === 0 ? 0 : firstIndex + 1;
   const lastItemNumber = departments.length === 0 ? 0 : firstIndex + paginatedDepartments.length;
+  const currencyFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 0,
+      }),
+    [],
+  );
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -70,7 +92,7 @@ export default function DepartmentsPage() {
   }, [currentPage, totalPages]);
 
   const openAddModal = () => {
-    setFormState({ name: "", description: "", employeeCount: "0" });
+    setFormState({ name: "", description: "", employeeCount: "0", salaryBudget: "0" });
     setAddModalOpen(true);
   };
 
@@ -80,6 +102,7 @@ export default function DepartmentsPage() {
       name: department.name,
       description: department.description,
       employeeCount: department.employeeCount.toString(),
+      salaryBudget: department.salaryBudget.toString(),
     });
   };
 
@@ -103,11 +126,23 @@ export default function DepartmentsPage() {
       return;
     }
 
+    const parsedBudget = Number.parseFloat(formState.salaryBudget);
+    if (Number.isNaN(parsedBudget) || parsedBudget < 0) {
+      alert("Salary budget must be a non-negative number.");
+      return;
+    }
+
     if (departmentBeingEdited) {
       setDepartments((current) =>
         current.map((department) =>
           department.id === departmentBeingEdited.id
-            ? { ...department, name: trimmedName, description: formState.description.trim(), employeeCount: parsedCount }
+            ? {
+                ...department,
+                name: trimmedName,
+                description: formState.description.trim(),
+                employeeCount: parsedCount,
+                salaryBudget: parsedBudget,
+              }
             : department,
         ),
       );
@@ -117,6 +152,7 @@ export default function DepartmentsPage() {
         name: trimmedName,
         description: formState.description.trim(),
         employeeCount: parsedCount,
+        salaryBudget: parsedBudget,
       };
       setDepartments((current) => [newDepartment, ...current]);
       setCurrentPage(1);
@@ -155,12 +191,17 @@ export default function DepartmentsPage() {
         </Button>
       </header>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card title="Total Departments" description="Active functional units">
           <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{departments.length}</p>
         </Card>
         <Card title="Total Employees" description="Across all departments">
           <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{departmentTotal}</p>
+        </Card>
+        <Card title="Total Salary Budget" description="Annual allocation">
+          <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+            {currencyFormatter.format(salaryTotal)}
+          </p>
         </Card>
       </section>
 
@@ -177,6 +218,9 @@ export default function DepartmentsPage() {
               <th scope="col" className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">
                 Employees
               </th>
+              <th scope="col" className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">
+                Salary Budget
+              </th>
               <th scope="col" className="px-4 py-3 text-right font-semibold text-gray-700 dark:text-gray-200">
                 Actions
               </th>
@@ -192,6 +236,9 @@ export default function DepartmentsPage() {
                   </td>
                   <td className="px-4 py-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
                     {department.employeeCount}
+                  </td>
+                  <td className="px-4 py-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    {currencyFormatter.format(department.salaryBudget)}
                   </td>
                   <td className="px-4 py-4 text-right">
                     <div className="flex justify-end gap-2">
@@ -215,7 +262,7 @@ export default function DepartmentsPage() {
               ))
             ) : (
               <tr>
-                <td colSpan={4} className="px-4 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+                <td colSpan={5} className="px-4 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                   No departments available. Add a department to get started.
                 </td>
               </tr>
@@ -279,6 +326,16 @@ export default function DepartmentsPage() {
             min={0}
             value={formState.employeeCount}
             onChange={(event) => setFormState((state) => ({ ...state, employeeCount: event.target.value }))}
+            required
+          />
+          <Input
+            label="Salary Budget (INR)"
+            name="salaryBudget"
+            type="number"
+            min={0}
+            step={10000}
+            value={formState.salaryBudget}
+            onChange={(event) => setFormState((state) => ({ ...state, salaryBudget: event.target.value }))}
             required
           />
 
